@@ -1,7 +1,4 @@
-const products = [
-    { id: 1, name: "Product 1" },
-    { id: 2, name: "Product 2" },
-];
+import Product from "../models/product";
 
 export const list = (req, res) => {
     res.json(products);
@@ -19,11 +16,18 @@ export const read = (req, res) => {
         });
     }
 };
-export const add = (req, res) => {
+export const add = async (req, res) => {
+    // Promise trong javascript
     try {
-        const product = req.body;
-        products.push(product);
-        res.json(product);
+        // Nhan gia tri tu client gui len
+        const body = req.body;
+        // khoi tao 1 doi tuong Product va luu vao database
+        const product = await new Product(body).save();
+
+        // Neu thanh cong thi tra ve client ket qua - san pham vua them vào db
+        return res.status(200).json({
+            product,
+        });
     } catch (error) {
         res.status(400).json({
             messsage: "Không thêm được sản phẩm",
@@ -47,3 +51,7 @@ export const remove = (req, res) => {
     // trả về 1 mảng mới, không bao gồm sản phẩm có id gửi lên
     res.json(products.filter((item) => item.id != id));
 };
+// feat: create product API
+// fix: API create product
+// style: button global
+// refactor: product controller

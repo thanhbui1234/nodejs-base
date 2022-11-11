@@ -1,7 +1,16 @@
 import Product from "../models/product";
 
-export const list = (req, res) => {
-    res.json(products);
+export const list = async (req, res) => {
+    try {
+        const products = await Product.find();
+        res.status(200).json({
+            data: products,
+        });
+    } catch (error) {
+        res.status(400).json({
+            message: error,
+        });
+    }
 };
 export const read = (req, res) => {
     try {
@@ -17,14 +26,9 @@ export const read = (req, res) => {
     }
 };
 export const add = async (req, res) => {
-    // Promise trong javascript
     try {
-        // Nhan gia tri tu client gui len
         const body = req.body;
-        // khoi tao 1 doi tuong Product va luu vao database
         const product = await new Product(body).save();
-
-        // Neu thanh cong thi tra ve client ket qua - san pham vua them vào db
         return res.status(200).json({
             product,
         });

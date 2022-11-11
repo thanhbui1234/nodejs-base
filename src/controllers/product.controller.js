@@ -12,13 +12,18 @@ export const list = async (req, res) => {
         });
     }
 };
-export const read = (req, res) => {
+export const read = async (req, res) => {
     try {
         const id = req.params.id;
-        const product = products.find((item) => {
-            return item.id == id;
+        const product = await Product.findOne({ _id: id });
+        res.status(200).json({
+            data: product,
         });
-        res.json(product);
+
+        // const product = products.find((item) => {
+        //     return item.id == id;
+        // });
+        // res.json(product);
     } catch (error) {
         res.status(400).json({
             message: "Product not found",
@@ -38,22 +43,32 @@ export const add = async (req, res) => {
         });
     }
 };
-export const update = (req, res) => {
-    console.log("update controller");
-    const id = req.params.id;
-    const product = req.body;
+export const update = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const body = req.body;
 
-    // Tìm sản phẩm trong mảng, và cập nhật ( nếu cùng ID ngược lại thì bỏ qua)
-    const newProducts = products.map((item) => (item.id == id ? product : item));
+        const product = await Product.findOneAndUpdate({ _id: id }, body, { new: true });
 
-    // Tìm sản phẩm trong mảng mới, và trả về
-    const currentProduct = newProducts.find((item) => item.id == id);
-    res.json(currentProduct);
+        res.status(200).json({ product });
+    } catch (error) {
+        res.status(400).json({
+            messsage: "Không cap nhat được sản phẩm",
+        });
+    }
 };
-export const remove = (req, res) => {
-    const id = req.params.id;
-    // trả về 1 mảng mới, không bao gồm sản phẩm có id gửi lên
-    res.json(products.filter((item) => item.id != id));
+export const remove = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const product = await Product.findOneAndDelete({ _id: id });
+        res.status(200).json({
+            data: product,
+        });
+    } catch (error) {
+        res.status(400).json({
+            message: "Xoa san pham khong thanh cong",
+        });
+    }
 };
 // feat: create product API
 // fix: API create product

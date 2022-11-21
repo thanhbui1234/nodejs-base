@@ -28,7 +28,6 @@ export const signin = async (req, res) => {
                 message: "Email không tồn tại",
             });
         }
-        console.log("authenticate", user.authenticate(body.password));
         // check mat khau
         if (!user.authenticate(body.password)) {
             return res.status(400).json({

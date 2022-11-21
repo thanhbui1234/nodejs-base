@@ -30,6 +30,26 @@ export const read = async (req, res) => {
         });
     }
 };
+
+/**
+ * @swagger
+ * /api/products:
+ *  post:
+ *   tags: [Products]
+ *   summary: Tạo sản phẩm mới
+ *   requestBody:
+ *    required: true
+ *    content:
+ *     application/json:
+ *      schema:
+ *       $ref: '#/components/schemas/Product'
+ *   responses:
+ *    200:
+ *     description: Tạo sản phẩm thành công
+ *    400:
+ *     description: Tạo sản phẩm không thành công
+ */
+
 export const add = async (req, res) => {
     try {
         const body = req.body;

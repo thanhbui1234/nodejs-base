@@ -27,7 +27,7 @@ const options = {
 };
 // Ket noi db
 mongoose
-    .connect("mongodb://localhost:27017/we17201")
+    .connect("mongodb://localhost:27017/new")
     .then(() => console.log("Ket noi db thanh cong"))
     .catch((error) => console.log("Ket noi db khong thanh cong", error));
 

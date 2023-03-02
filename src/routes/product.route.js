@@ -8,8 +8,8 @@ const router = express.Router();
 router.get("/products", list);
 router.get("/products/:id", read);
 router.post("/products/", checkPermission, add);
-router.put("/products/:id", update);
-router.delete("/products/:id", remove);
+router.put("/products/:id", checkPermission, update);
+router.delete("/products/:id", checkPermission, remove);
 
 router.param("userId", userById);
 

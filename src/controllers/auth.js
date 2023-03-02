@@ -19,13 +19,13 @@ const signInSchema = object().shape({
 });
 export const signup = async (req, res) => {
     try {
-        const { name, email, password } = req.body;
+        const { name, email, password, confirmPassword } = req.body;
 
         await signupSchema.validate({
             name,
             email,
             password,
-            confirmPassword: req.body.confirmPassword,
+            confirmPassword,
         });
 
         const userExists = await User.findOne({ email });
@@ -71,12 +71,13 @@ export const signin = async (req, res) => {
 
         const user = await User.findOne({ email });
         if (!user) {
-            return res.status(400).json({ message: "Invalid email or password" });
+            return res.status(400).json({ message: "Tài khoản không tồn tại" });
         }
+
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (!isMatch) {
-            return res.status(400).json({ message: "Password not match" });
+            return res.status(400).json({ message: "Mật khẩu không khớp" });
         }
 
         const token = jwt.sign({ _id: user._id }, "123456");
@@ -91,7 +92,6 @@ export const signin = async (req, res) => {
         if (error.name === "ValidationError") {
             return res.status(400).json({ message: error.errors[0] });
         }
-        console.log(error);
         res.status(500).json({ message: "Internal Server Error" });
     }
 };

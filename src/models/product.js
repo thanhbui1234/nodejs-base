@@ -1,7 +1,9 @@
-import mongoose from "mongoose";
+import { Schema, model } from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2";
+import mongooseDelete from "mongoose-delete";
+const plugins = [mongoosePaginate, mongooseDelete];
 
-const productSchema = mongoose.Schema({
+const productSchema = Schema({
     name: {
         type: String,
         required: true,
@@ -20,11 +22,11 @@ const productSchema = mongoose.Schema({
     },
 });
 
-productSchema.plugin(mongoosePaginate);
+plugins.forEach((plugin) => {
+    productSchema.plugin(plugin);
+});
 
-const Product = mongoose.model("Product", productSchema);
-
-export default Product;
+export default model("Product", productSchema);
 
 /**
  * @swagger

@@ -116,8 +116,16 @@ export const update = async (req, res) => {
         await productSchema.validate(body, { abortEarly: false });
 
         const product = await Product.findOneAndUpdate({ _id: id }, body, { new: true });
+        if (!product) {
+            return res.status(404).json({
+                message: "Không tìm thấy sản phẩm",
+            });
+        }
 
-        res.status(200).json({ product });
+        return res.status(200).json({
+            message: "Cập nhật sản phẩm thành công",
+            data: product,
+        });
     } catch (error) {
         if (error instanceof yup.ValidationError) {
             const errors = error.inner.map((err) => ({ message: err.message }));
@@ -132,17 +140,35 @@ export const update = async (req, res) => {
 export const remove = async (req, res) => {
     try {
         const id = req.params.id;
-        const product = await Product.findOneAndDelete({ _id: id });
-        res.status(200).json({
+        const { isHardDelete } = req.query;
+
+        // Kiểm tra dữ liệu
+        await productSchema.validate(req.body, { abortEarly: false });
+
+        const product = await Product.findById(id);
+
+        if (!product) {
+            return res.status(404).json({
+                message: "Không tìm thấy sản phẩm",
+            });
+        }
+        // Xóa mềm sản phẩm bằng mongoose-delete
+        // Nếu sản phẩm đã bị xóa mềm thì xóa cứng
+        // Nếu sản phẩm chưa bị xóa mềm thì xóa mềm
+        isHardDelete === "true" ? await product.forceDelete() : await product.delete();
+
+        return res.status(200).json({
+            message: "Xóa sản phẩm thành công",
             data: product,
         });
     } catch (error) {
+        if (error instanceof yup.ValidationError) {
+            const errors = error.inner.map((err) => ({ message: err.message }));
+            return res.status(400).json({ errors });
+        }
+
         res.status(400).json({
-            message: "Xoa san pham khong thanh cong",
+            message: "Xóa sản phẩm không thành công",
         });
     }
 };
-// feat: create product API
-// fix: API create product
-// style: button global
-// refactor: product controller

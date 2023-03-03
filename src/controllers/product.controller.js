@@ -112,10 +112,18 @@ export const update = async (req, res) => {
         const id = req.params.id;
         const body = req.body;
 
+        // Kiểm tra dữ liệu
+        await productSchema.validate(body, { abortEarly: false });
+
         const product = await Product.findOneAndUpdate({ _id: id }, body, { new: true });
 
         res.status(200).json({ product });
     } catch (error) {
+        if (error instanceof yup.ValidationError) {
+            const errors = error.inner.map((err) => ({ message: err.message }));
+            return res.status(400).json({ errors });
+        }
+
         res.status(400).json({
             messsage: "Không cap nhat được sản phẩm",
         });

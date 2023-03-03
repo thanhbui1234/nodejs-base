@@ -1,12 +1,6 @@
 import Product from "../models/product";
-import * as yup from "yup";
-
-const productSchema = yup.object().shape({
-    name: yup.string().required(),
-    price: yup.number().required(),
-    description: yup.string().required(),
-    createdAt: yup.date().default(() => new Date()),
-});
+import Category from "../models/product";
+import { productSchema } from "../validate/product";
 
 export const get = async (req, res) => {
     const options = {
@@ -51,20 +45,23 @@ export const get = async (req, res) => {
         });
     }
 };
-
-// export const read = async (req, res) => {
-//     try {
-//         const id = req.params.id;
-//         const product = await Product.findOne({ _id: id });
-//         return res.status(200).json({
-//             data: product,
-//         });
-//     } catch (error) {
-//         res.status(400).json({
-//             message: "Product not found",
-//         });
-//     }
-// };
+export const getCategory = async (req, res) => {
+    try {
+        const category = await Category.find();
+        if (!category) {
+            return res.status(404).json({
+                message: "Category not found",
+            });
+        }
+        return res.status(200).json({
+            data: category,
+        });
+    } catch (error) {
+        return res.status(400).json({
+            message: error.message,
+        });
+    }
+};
 
 /**
  * @swagger

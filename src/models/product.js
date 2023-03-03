@@ -3,6 +3,25 @@ import mongoosePaginate from "mongoose-paginate-v2";
 import mongooseDelete from "mongoose-delete";
 const plugins = [mongoosePaginate, mongooseDelete];
 
+const categoryProductSchema = Schema({
+    name: {
+        type: String,
+        required: true,
+        trim: true,
+    },
+    description: {
+        type: String,
+        required: true,
+        trim: true,
+    },
+    products: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: "Product",
+        },
+    ],
+});
+
 const productSchema = Schema({
     name: {
         type: String,
@@ -11,14 +30,31 @@ const productSchema = Schema({
     price: {
         type: Number,
         required: true,
+        min: 0,
     },
     description: {
         type: String,
+    },
+    categoryId: {
+        type: Schema.Types.ObjectId,
+        ref: "categories",
         required: true,
     },
     createdAt: {
         type: Date,
         default: Date.now,
+    },
+    updatedAt: {
+        type: Date,
+        default: Date.now,
+    },
+    deletedAt: {
+        type: Date,
+        default: null,
+    },
+    deleted: {
+        type: Boolean,
+        default: false,
     },
 });
 
@@ -26,7 +62,11 @@ plugins.forEach((plugin) => {
     productSchema.plugin(plugin);
 });
 
-export default model("Product", productSchema);
+const schemas = {
+    Product: model("Product", productSchema),
+    CategoryProduct: model("Category", categoryProductSchema),
+};
+export default schemas;
 
 /**
  * @swagger

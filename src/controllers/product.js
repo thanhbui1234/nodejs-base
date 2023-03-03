@@ -152,9 +152,8 @@ export const remove = async (req, res) => {
                 message: "Không tìm thấy sản phẩm",
             });
         }
-        // Xóa mềm sản phẩm bằng mongoose-delete
-        // Nếu sản phẩm đã bị xóa mềm thì xóa cứng
-        // Nếu sản phẩm chưa bị xóa mềm thì xóa mềm
+        // Kiểm tra nếu isHardDelete = true thì xóa vĩnh viễn
+        // ngược lại thì xóa mềm
         isHardDelete === "true" ? await product.forceDelete() : await product.delete();
 
         return res.status(200).json({

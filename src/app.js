@@ -4,8 +4,8 @@ import morgan from "morgan";
 import swaggerUI from "swagger-ui-express";
 import swaggerJSDoc from "swagger-jsdoc";
 
-import productRouter from "./routes/product.route";
-import authRouter from "./routes/auth.route";
+import productRouter from "./routes/product";
+import authRouter from "./routes/auth";
 
 const app = express();
 

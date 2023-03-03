@@ -1,6 +1,14 @@
 import Product from "../models/product";
+import * as yup from "yup";
 
-export const list = async (req, res) => {
+const productSchema = yup.object().shape({
+    name: yup.string().required(),
+    price: yup.number().required(),
+    description: yup.string().required(),
+    createdAt: yup.date().default(() => new Date()),
+});
+
+export const get = async (req, res) => {
     const options = {
         page: req.query._page || 1,
         limit: req.query._limit || 10,
@@ -8,40 +16,55 @@ export const list = async (req, res) => {
     };
 
     try {
-        const result = await Product.paginate({}, options);
+        if (req.params.id) {
+            // nếu có id thì trả về sản phẩm duy nhất
+            const product = await Product.findOne({ _id: req.params.id });
+            if (!product) {
+                return res.status(404).json({
+                    message: "Product not found",
+                });
+            }
+            return res.status(200).json({
+                data: product,
+            });
+        } else {
+            // nếu không có id thì trả về danh sách sản phẩm
+            const result = await Product.paginate({}, options);
 
-        if (result.docs.length === 0) {
-            return res.status(404).json({
-                message: "No products found",
+            if (result.docs.length === 0) {
+                return res.status(404).json({
+                    message: "No products found",
+                });
+            }
+            return res.status(200).json({
+                data: result.docs,
+                pagination: {
+                    currentPage: result.page,
+                    totalPages: result.totalPages,
+                    totalItems: result.totalDocs,
+                },
             });
         }
-        return res.status(200).json({
-            data: result.docs,
-            pagination: {
-                currentPage: result.page,
-                totalPages: result.totalPages,
-                totalItems: result.totalDocs,
-            },
-        });
     } catch (error) {
         return res.status(400).json({
             message: error.message,
         });
     }
 };
-export const read = async (req, res) => {
-    try {
-        const id = req.params.id;
-        const product = await Product.findOne({ _id: id });
-        return res.status(200).json({
-            data: product,
-        });
-    } catch (error) {
-        res.status(400).json({
-            message: "Product not found",
-        });
-    }
-};
+
+// export const read = async (req, res) => {
+//     try {
+//         const id = req.params.id;
+//         const product = await Product.findOne({ _id: id });
+//         return res.status(200).json({
+//             data: product,
+//         });
+//     } catch (error) {
+//         res.status(400).json({
+//             message: "Product not found",
+//         });
+//     }
+// };
 
 /**
  * @swagger
@@ -65,13 +88,22 @@ export const read = async (req, res) => {
 export const add = async (req, res) => {
     try {
         const body = req.body;
+
+        // Kiểm tra dữ liệu
+        await productSchema.validate(body, { abortEarly: false });
+
         const product = await new Product(body).save();
         return res.status(200).json({
             product,
         });
     } catch (error) {
-        res.status(400).json({
-            messsage: "Không thêm được sản phẩm",
+        if (error instanceof yup.ValidationError) {
+            const errors = error.errors.map((message) => ({ message }));
+            return res.status(400).json({ errors });
+        }
+
+        return res.status(400).json({
+            message: "Không thêm được sản phẩm",
         });
     }
 };

@@ -92,7 +92,7 @@ export const add = async (req, res) => {
         // Kiểm tra dữ liệu
         await productSchema.validate(body, { abortEarly: false });
 
-        const product = await new Product(body).save();
+        const product = await Product.create(body);
         return res.status(200).json({
             product,
         });

@@ -1,14 +1,31 @@
 import Product from "../models/product";
 
 export const list = async (req, res) => {
+    const options = {
+        page: req.query._page || 1,
+        limit: req.query._limit || 10,
+        sort: { [req.query._sort || "createdAt"]: req.query._order === "desc" ? -1 : 1 },
+    };
+
     try {
-        const products = await Product.find();
-        res.status(200).json({
-            data: products,
+        const result = await Product.paginate({}, options);
+
+        if (result.docs.length === 0) {
+            return res.status(404).json({
+                message: "No products found",
+            });
+        }
+        return res.status(200).json({
+            data: result.docs,
+            pagination: {
+                currentPage: result.page,
+                totalPages: result.totalPages,
+                totalItems: result.totalDocs,
+            },
         });
     } catch (error) {
-        res.status(400).json({
-            message: error,
+        return res.status(400).json({
+            message: error.message,
         });
     }
 };
@@ -16,14 +33,9 @@ export const read = async (req, res) => {
     try {
         const id = req.params.id;
         const product = await Product.findOne({ _id: id });
-        res.status(200).json({
+        return res.status(200).json({
             data: product,
         });
-
-        // const product = products.find((item) => {
-        //     return item.id == id;
-        // });
-        // res.json(product);
     } catch (error) {
         res.status(400).json({
             message: "Product not found",

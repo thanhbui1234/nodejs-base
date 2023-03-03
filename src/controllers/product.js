@@ -157,6 +157,12 @@ export const restore = async (req, res) => {
         const id = req.params.id;
         const product = await Product.findById(id);
 
+        // Kiểm tra quyền hạn của người dùng
+        if (!req.user.isAdmin) {
+            return res.status(403).json({
+                message: "Bạn không có quyền phục hồi sản phẩm",
+            });
+        }
         if (!product) {
             return res.status(404).json({
                 message: "Không tìm thấy sản phẩm",
@@ -172,11 +178,11 @@ export const restore = async (req, res) => {
         product.deleted = false;
         product.deletedAt = null;
 
-        await product.save();
+        const restoredProduct = await product.save();
 
         return res.status(200).json({
             message: "Phục hồi sản phẩm thành công",
-            data: product,
+            data: restoredProduct,
         });
     } catch (error) {
         res.status(400).json({

@@ -45,23 +45,6 @@ export const get = async (req, res) => {
         });
     }
 };
-export const getCategory = async (req, res) => {
-    try {
-        const category = await Category.find();
-        if (!category) {
-            return res.status(404).json({
-                message: "Category not found",
-            });
-        }
-        return res.status(200).json({
-            data: category,
-        });
-    } catch (error) {
-        return res.status(400).json({
-            message: error.message,
-        });
-    }
-};
 
 /**
  * @swagger
@@ -165,6 +148,39 @@ export const remove = async (req, res) => {
 
         res.status(400).json({
             message: "Xóa sản phẩm không thành công",
+        });
+    }
+};
+
+export const restore = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const product = await Product.findById(id);
+
+        if (!product) {
+            return res.status(404).json({
+                message: "Không tìm thấy sản phẩm",
+            });
+        }
+
+        if (!product.deleted) {
+            return res.status(400).json({
+                message: "Sản phẩm chưa bị xóa mềm",
+            });
+        }
+
+        product.deleted = false;
+        product.deletedAt = null;
+
+        await product.save();
+
+        return res.status(200).json({
+            message: "Phục hồi sản phẩm thành công",
+            data: product,
+        });
+    } catch (error) {
+        res.status(400).json({
+            message: "Phục hồi sản phẩm không thành công",
         });
     }
 };

@@ -3,11 +3,13 @@ import mongoose from "mongoose";
 import morgan from "morgan";
 import swaggerUI from "swagger-ui-express";
 import swaggerJSDoc from "swagger-jsdoc";
+import * as dotenv from "dotenv";
 
 import productRouter from "./routes/product";
 import authRouter from "./routes/auth";
 
 const app = express();
+dotenv.config();
 
 const options = {
     definition: {
@@ -39,6 +41,6 @@ app.use("/api", productRouter);
 app.use("/api", authRouter);
 
 app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(specs));
-app.listen(8080, () => {
+app.listen(process.env.PORT, () => {
     console.log("Server is running on port 8080");
 });

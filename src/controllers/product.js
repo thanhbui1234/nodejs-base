@@ -8,6 +8,7 @@ export const get = async (req, res) => {
         limit: req.query._limit || 10,
         sort: { [req.query._sort || "createdAt"]: req.query._order === "desc" ? -1 : 1 },
     };
+    const populateOptions = req.query._expand ? [{ path: "categoryId", select: "name" }] : [];
 
     try {
         if (req.params.id) {
@@ -23,21 +24,36 @@ export const get = async (req, res) => {
             });
         } else {
             // nếu không có id thì trả về danh sách sản phẩm
-            const result = await Product.paginate({}, options);
+            const result = await Product.paginate({}, { ...options, populate: populateOptions });
 
             if (result.docs.length === 0) {
                 return res.status(404).json({
                     message: "No products found",
                 });
             }
-            return res.status(200).json({
-                data: result.docs,
-                pagination: {
-                    currentPage: result.page,
-                    totalPages: result.totalPages,
-                    totalItems: result.totalDocs,
-                },
-            });
+            if (req.query._expand) {
+                const products = result.docs;
+                // lấy danh sách các danh mục này, sử dụng Array.from(new Set(array)) để loại bỏ các danh mục trùng lặp.
+                const categories = Array.from(new Set(products.map((p) => p.categoryId)));
+                return res.status(200).json({
+                    data: products,
+                    categories,
+                    pagination: {
+                        currentPage: result.page,
+                        totalPages: result.totalPages,
+                        totalItems: result.totalDocs,
+                    },
+                });
+            } else {
+                return res.status(200).json({
+                    data: result.docs,
+                    pagination: {
+                        currentPage: result.page,
+                        totalPages: result.totalPages,
+                        totalItems: result.totalDocs,
+                    },
+                });
+            }
         }
     } catch (error) {
         return res.status(400).json({

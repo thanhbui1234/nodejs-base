@@ -3,24 +3,24 @@ import mongoosePaginate from "mongoose-paginate-v2";
 import mongooseDelete from "mongoose-delete";
 const plugins = [mongoosePaginate, mongooseDelete];
 
-const categoryProductSchema = Schema({
-    name: {
-        type: String,
-        required: true,
-        trim: true,
-    },
-    description: {
-        type: String,
-        required: true,
-        trim: true,
-    },
-    products: [
-        {
-            type: Schema.Types.ObjectId,
-            ref: "Product",
-        },
-    ],
-});
+// const categoryProductSchema = Schema({
+//     name: {
+//         type: String,
+//         required: true,
+//         trim: true,
+//     },
+//     description: {
+//         type: String,
+//         required: true,
+//         trim: true,
+//     },
+//     products: [
+//         {
+//             type: Schema.Types.ObjectId,
+//             ref: "Product",
+//         },
+//     ],
+// });
 
 const productSchema = Schema({
     name: {
@@ -61,12 +61,7 @@ const productSchema = Schema({
 plugins.forEach((plugin) => {
     productSchema.plugin(plugin);
 });
-
-const schemas = {
-    Product: model("Product", productSchema),
-    CategoryProduct: model("Category", categoryProductSchema),
-};
-export default schemas;
+export default model("Product", productSchema);
 
 /**
  * @swagger

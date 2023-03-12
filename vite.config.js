@@ -2,10 +2,10 @@ import { defineConfig } from "vite";
 import { VitePluginNode } from "vite-plugin-node";
 import { loadEnv } from "vite";
 
-export default ({ mode }) => {
+export default defineConfig(({ command, mode }) => {
     const env = loadEnv(mode, process.cwd());
 
-    return defineConfig({
+    return {
         // ...vite configures
         server: {
             // vite server configs, for details see [vite doc](https://vitejs.dev/config/#server-host)
@@ -63,5 +63,5 @@ export default ({ mode }) => {
             //   'fastify-swagger',
             // ],
         },
-    });
-};
+    };
+});

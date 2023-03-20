@@ -1,6 +1,4 @@
 import mongoose from "mongoose";
-import { createHmac } from "crypto";
-
 const userSchema = new mongoose.Schema(
     {
         name: {

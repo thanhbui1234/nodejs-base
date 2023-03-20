@@ -3,84 +3,45 @@ import Category from "../models/product";
 import { productSchema } from "../validate/product";
 
 export const get = async (req, res) => {
+    const { _page = 1, _limit = 10, _sort = "createdAt", _order = "asc", _expand } = req.query;
     const options = {
-        page: req.query._page || 1,
-        limit: req.query._limit || 10,
-        sort: { [req.query._sort || "createdAt"]: req.query._order === "desc" ? -1 : 1 },
+        page: _page,
+        limit: _limit,
+        sort: { [_sort]: _order === "desc" ? -1 : 1 },
     };
-    const populateOptions = req.query._expand ? [{ path: "categoryId", select: "name" }] : [];
+    const populateOptions = _expand ? [{ path: "categoryId", select: "name" }] : [];
 
     try {
         if (req.params.id) {
-            // nếu có id thì trả về sản phẩm duy nhất
-            const product = await Product.findOne({ _id: req.params.id });
-            if (!product) {
-                return res.status(404).json({
-                    message: "Product not found",
-                });
-            }
-            return res.status(200).json({
-                data: product,
-            });
-        } else {
-            // nếu không có id thì trả về danh sách sản phẩm
-            const result = await Product.paginate({}, { ...options, populate: populateOptions });
-
-            if (result.docs.length === 0) {
-                return res.status(404).json({
-                    message: "No products found",
-                });
-            }
-            if (req.query._expand) {
-                const products = result.docs;
-                // lấy danh sách các danh mục này, sử dụng Array.from(new Set(array)) để loại bỏ các danh mục trùng lặp.
-                const categories = Array.from(new Set(products.map((p) => p.categoryId)));
-                return res.status(200).json({
-                    data: products,
-                    categories,
-                    pagination: {
-                        currentPage: result.page,
-                        totalPages: result.totalPages,
-                        totalItems: result.totalDocs,
-                    },
-                });
-            } else {
-                return res.status(200).json({
-                    data: result.docs,
-                    pagination: {
-                        currentPage: result.page,
-                        totalPages: result.totalPages,
-                        totalItems: result.totalDocs,
-                    },
-                });
-            }
+            const product = await Product.findById(req.params.id);
+            if (!product) throw new Error("Product not found");
+            return res.status(200).json({ data: product });
         }
+
+        const result = await Product.paginate({}, { ...options, populate: populateOptions });
+
+        if (result.docs.length === 0) throw new Error("No products found");
+
+        const response = {
+            data: result.docs,
+            pagination: {
+                currentPage: result.page,
+                totalPages: result.totalPages,
+                totalItems: result.totalDocs,
+            },
+        };
+
+        if (_expand) {
+            const products = result.docs;
+            const categories = Array.from(new Set(products.map((p) => p.categoryId)));
+            response.categories = categories;
+        }
+
+        return res.status(200).json(response);
     } catch (error) {
-        return res.status(400).json({
-            message: error.message,
-        });
+        return res.status(400).json({ message: error.message });
     }
 };
-
-/**
- * @swagger
- * /api/products:
- *  post:
- *   tags: [Products]
- *   summary: Tạo sản phẩm mới
- *   requestBody:
- *    required: true
- *    content:
- *     application/json:
- *      schema:
- *       $ref: '#/components/schemas/Product'
- *   responses:
- *    200:
- *     description: Tạo sản phẩm thành công
- *    400:
- *     description: Tạo sản phẩm không thành công
- */
-
 export const add = async (req, res) => {
     try {
         const body = req.body;
@@ -167,7 +128,6 @@ export const remove = async (req, res) => {
         });
     }
 };
-
 export const restore = async (req, res) => {
     try {
         const id = req.params.id;

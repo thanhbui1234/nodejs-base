@@ -1,22 +1,10 @@
 import User from "../models/user";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import { object, string, ref } from "yup";
-
-const signupSchema = object().shape({
-    name: string(),
-    email: string().email().required("Bắt buộc phải có email"),
-    password: string().min(6).required("Bắt buộc phải có mật khảu"),
-    confirmPassword: string()
-        .oneOf([ref("password"), null], "Mật khẩu không khớp")
-        .required(),
-});
+import { signInSchema, signupSchema } from "../validate/auth";
 
 // define validation schema using yup
-const signInSchema = object().shape({
-    email: string().email().required(),
-    password: string().required(),
-});
+
 export const signup = async (req, res) => {
     try {
         const { name, email, password, confirmPassword } = req.body;

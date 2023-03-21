@@ -1,7 +1,7 @@
 import User from "../models/user";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import { signInSchema, signupSchema } from "../validate/auth";
+import { signInSchema, signupSchema } from "../schemas/auth";
 
 // define validation schema using yup
 

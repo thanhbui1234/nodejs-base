@@ -1,9 +1,9 @@
 import Product from "../models/product";
-import Category from "../models/product";
-import { productSchema } from "../validate/product";
+import { productSchema } from "../schemas/product";
 
 export const get = async (req, res) => {
     const { _page = 1, _limit = 10, _sort = "createdAt", _order = "asc", _expand } = req.query;
+
     const options = {
         page: _page,
         limit: _limit,
@@ -17,9 +17,7 @@ export const get = async (req, res) => {
             if (!product) throw new Error("Product not found");
             return res.status(200).json({ data: product });
         }
-
         const result = await Product.paginate({}, { ...options, populate: populateOptions });
-
         if (result.docs.length === 0) throw new Error("No products found");
 
         const response = {
@@ -45,22 +43,19 @@ export const get = async (req, res) => {
 export const add = async (req, res) => {
     try {
         const body = req.body;
-
         // Kiểm tra dữ liệu
-        await productSchema.validate(body, { abortEarly: false });
-
+        const { error } = productSchema.validate(body, { abortEarly: false });
+        if (error) {
+            const errors = error.details.map((message) => ({ message }));
+            return res.status(400).json({ errors });
+        }
         const product = await Product.create(body);
         return res.status(200).json({
             product,
         });
     } catch (error) {
-        if (error instanceof yup.ValidationError) {
-            const errors = error.errors.map((message) => ({ message }));
-            return res.status(400).json({ errors });
-        }
-
         return res.status(400).json({
-            message: "Không thêm được sản phẩm",
+            message: error,
         });
     }
 };
@@ -70,8 +65,11 @@ export const update = async (req, res) => {
         const body = req.body;
 
         // Kiểm tra dữ liệu
-        await productSchema.validate(body, { abortEarly: false });
-
+        const { error } = productSchema.validate(body, { abortEarly: false });
+        if (error) {
+            const errors = error.details.map((message) => ({ message }));
+            return res.status(400).json({ errors });
+        }
         const product = await Product.findOneAndUpdate({ _id: id }, body, { new: true });
         if (!product) {
             return res.status(404).json({
@@ -84,23 +82,22 @@ export const update = async (req, res) => {
             data: product,
         });
     } catch (error) {
-        if (error instanceof yup.ValidationError) {
-            const errors = error.inner.map((err) => ({ message: err.message }));
-            return res.status(400).json({ errors });
-        }
-
         res.status(400).json({
-            messsage: "Không cap nhat được sản phẩm",
+            messsage: error,
         });
     }
 };
 export const remove = async (req, res) => {
     try {
         const id = req.params.id;
-        const { isHardDelete } = req.query;
+        const { isHardDelete } = req.body;
 
         // Kiểm tra dữ liệu
-        await productSchema.validate(req.body, { abortEarly: false });
+        const { error } = productSchema.validate(req.body, { abortEarly: false });
+        if (error) {
+            const errors = error.details.map((message) => ({ message }));
+            return res.status(400).json({ errors });
+        }
 
         const product = await Product.findById(id);
 
@@ -118,13 +115,8 @@ export const remove = async (req, res) => {
             data: product,
         });
     } catch (error) {
-        if (error instanceof yup.ValidationError) {
-            const errors = error.inner.map((err) => ({ message: err.message }));
-            return res.status(400).json({ errors });
-        }
-
         res.status(400).json({
-            message: "Xóa sản phẩm không thành công",
+            message: error,
         });
     }
 };

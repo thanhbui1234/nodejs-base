@@ -9,12 +9,21 @@ export const signup = async (req, res) => {
     try {
         const { name, email, password, confirmPassword } = req.body;
 
-        await signupSchema.validate({
-            name,
-            email,
-            password,
-            confirmPassword,
-        });
+        const { error } = await signupSchema.validate(
+            {
+                name,
+                email,
+                password,
+                confirmPassword,
+            },
+            { abortEarly: false }
+        );
+        if (error) {
+            const errors = error.details.map((error) => error.message);
+            return res.status(400).json({
+                message: errors,
+            });
+        }
 
         const userExists = await User.findOne({ email });
 
@@ -25,7 +34,6 @@ export const signup = async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-
         const user = new User({
             name,
             email,
@@ -55,8 +63,13 @@ export const signin = async (req, res) => {
         const { email, password } = req.body;
 
         // validate the input data against the schema
-        await signInSchema.validate({ email, password });
-
+        const { error } = signInSchema.validate({ email, password }, { abortEarly: false });
+        if (error) {
+            const errors = error.details.map((error) => error.message);
+            return res.status(400).json({
+                message: errors,
+            });
+        }
         const user = await User.findOne({ email });
         if (!user) {
             return res.status(400).json({ message: "Tài khoản không tồn tại" });

@@ -1,12 +1,12 @@
-import express from "express";
+import dotenv from "dotenv";
+import express, { Application } from "express";
 import morgan from "morgan";
-import * as dotenv from "dotenv";
 import connectDB from "./config/database";
 
-import productRouter from "./routes/product";
 import authRouter from "./routes/auth";
+import productRouter from "./routes/product";
 
-const app = express();
+const app: Application = express();
 dotenv.config();
 
 // Khởi tạo kết nối với cơ sở dữ liệu
@@ -18,4 +18,4 @@ app.use(morgan("tiny"));
 app.use("/api", productRouter);
 app.use("/api", authRouter);
 
-export const viteNodeApp = app;
+export const viteNodeApp: Application = app;

@@ -1,7 +1,23 @@
+
+import { Request, Response } from "express";
 import Product from "../models/product";
 import { productSchema } from "../schemas/product";
+interface ProductDocument {
+    id: string;
+    name: string;
+    description: string;
+    price: number;
+}
 
-export const get = async (req, res) => {
+interface IProductResponse {
+    data: ProductDocument[];
+    pagination: {
+        currentPage: number;
+        totalPages: number;
+        totalItems: number;
+    };
+}
+export const get = async (req: Request, res: Response) => {
     const { _page = 1, _limit = 10, _sort = "createdAt", _order = "asc", _expand } = req.query;
 
     const options = {
@@ -9,6 +25,7 @@ export const get = async (req, res) => {
         limit: _limit,
         sort: { [_sort]: _order === "desc" ? -1 : 1 },
     };
+
     const populateOptions = _expand ? [{ path: "categoryId", select: "name" }] : [];
 
     try {
@@ -17,10 +34,17 @@ export const get = async (req, res) => {
             if (!product) throw new Error("Product not found");
             return res.status(200).json({ data: product });
         }
-        const result = await Product.paginate({}, { ...options, populate: populateOptions });
+
+        const result = await Product.paginate({}, { ...options, populate: populateOptions }) as {
+            docs: ProductDocument[];
+            page: number;
+            totalPages: number;
+            totalDocs: number;
+        };
+
         if (result.docs.length === 0) throw new Error("No products found");
 
-        const response = {
+        const response: IProductResponse = {
             data: result.docs,
             pagination: {
                 currentPage: result.page,
@@ -29,18 +53,18 @@ export const get = async (req, res) => {
             },
         };
 
-        if (_expand) {
-            const products = result.docs;
-            const categories = Array.from(new Set(products.map((p) => p.categoryId)));
-            response.categories = categories;
-        }
+        // if (_expand) {
+        //     const products = result.docs;
+        //     const categories = Array.from(new Set(products.map((p) => p.categoryId)));
+        //     response.categories = categories;
+        // }
 
         return res.status(200).json(response);
     } catch (error) {
         return res.status(400).json({ message: error.message });
     }
 };
-export const add = async (req, res) => {
+export const add = async (req: Request, res: Response) => {
     try {
         const body = req.body;
         // Kiểm tra dữ liệu
@@ -59,7 +83,7 @@ export const add = async (req, res) => {
         });
     }
 };
-export const update = async (req, res) => {
+export const update = async (req: Request, res: Response) => {
     try {
         const id = req.params.id;
         const body = req.body;
@@ -87,7 +111,7 @@ export const update = async (req, res) => {
         });
     }
 };
-export const remove = async (req, res) => {
+export const remove = async (req: Request, res: Response) => {
     try {
         const id = req.params.id;
         const { isHardDelete } = req.body;
@@ -120,7 +144,7 @@ export const remove = async (req, res) => {
         });
     }
 };
-export const restore = async (req, res) => {
+export const restore = async (req: Request, res: Response) => {
     try {
         const id = req.params.id;
         const product = await Product.findById(id);

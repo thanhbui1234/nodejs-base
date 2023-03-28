@@ -2,7 +2,7 @@
 import { Request, Response } from "express";
 import Product from "../models/product";
 import { productSchema } from "../schemas/product";
-interface ProductDocument {
+interface IProduct {
     id: string;
     name: string;
     description: string;
@@ -10,7 +10,7 @@ interface ProductDocument {
 }
 
 interface IProductResponse {
-    data: ProductDocument[];
+    data: IProduct[];
     pagination: {
         currentPage: number;
         totalPages: number;
@@ -23,7 +23,7 @@ export const get = async (req: Request, res: Response) => {
     const options = {
         page: _page,
         limit: _limit,
-        sort: { [_sort]: _order === "desc" ? -1 : 1 },
+        sort: { [_sort as string]: _order === "desc" ? -1 : 1 },
     };
 
     const populateOptions = _expand ? [{ path: "categoryId", select: "name" }] : [];
@@ -36,7 +36,7 @@ export const get = async (req: Request, res: Response) => {
         }
 
         const result = await Product.paginate({}, { ...options, populate: populateOptions }) as {
-            docs: ProductDocument[];
+            docs: IProduct[];
             page: number;
             totalPages: number;
             totalDocs: number;

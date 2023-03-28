@@ -6,7 +6,7 @@ import { signInSchema, signupSchema } from "../schemas/auth";
 
 // define validation schema using yup
 
-export const signup = async (req: Request, res) => {
+export const signup = async (req: Request, res: Response) => {
     try {
         const { name, email, password, confirmPassword } = req.body;
 
@@ -59,7 +59,7 @@ export const signup = async (req: Request, res) => {
     }
 };
 
-export const signin = async (req, res) => {
+export const signin = async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body;
 

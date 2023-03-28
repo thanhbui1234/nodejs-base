@@ -1,3 +1,4 @@
+import { Request, Response } from 'express';
 import User from "../models/user";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
@@ -5,7 +6,7 @@ import { signInSchema, signupSchema } from "../schemas/auth";
 
 // define validation schema using yup
 
-export const signup = async (req, res) => {
+export const signup = async (req: Request, res) => {
     try {
         const { name, email, password, confirmPassword } = req.body;
 

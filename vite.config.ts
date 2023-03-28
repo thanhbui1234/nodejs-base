@@ -10,7 +10,7 @@ const config = () => {
         plugins: [
             ...VitePluginNode({
                 adapter: 'express',
-                appPath: './src/app.js',
+                appPath: './src/app.ts',
                 exportName: 'viteNodeApp',
                 tsCompiler: 'esbuild',
                 swcOptions: {},

@@ -1,25 +1,26 @@
-import * as yup from "yup";
 
-export const productSchema = yup.object().shape({
-    name: yup.string().required(),
-    price: yup.number().required().min(0),
-    description: yup.string(),
-    categoryId: yup.string().required(),
-    createdAt: yup.date().default(() => new Date()),
-    updatedAt: yup.date().default(() => new Date()),
-    deletedAt: yup.date().default(null),
-    deleted: yup.boolean().default(false),
+import joi from 'joi';
+
+export const productSchema = joi.object({
+    name: joi.string().required(),
+    price: joi.number().required().min(0),
+    description: joi.string(),
+    categoryId: joi.string().required(),
+    createdAt: joi.date().default(() => new Date()),
+    updatedAt: joi.date().default(() => new Date()),
+    deletedAt: joi.date().default(null),
+    deleted: joi.boolean().default(false),
 });
 
-export const categoryProductSchema = yup.object().shape({
-    name: yup.string().trim().required(),
-    description: yup.string().required(),
-    products: yup.array().of(
-        yup
-            .string()
-            // regular expression để validate ObjectId.
-            //
-            .matches(/^[0-9a-fA-F]{24}$/)
-            .required()
-    ),
-});
+// export const categoryProductSchema = joi.object().shape({
+//     name: joi.string().trim().required(),
+//     description: joi.string().required(),
+//     products: joi.array().of(
+//         joi
+//             .string()
+//             // regular expression để validate ObjectId.
+//             //
+//             .matches(/^[0-9a-fA-F]{24}$/)
+//             .required()
+//     ),
+// });

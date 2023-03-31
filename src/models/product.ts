@@ -1,4 +1,4 @@
-import { Schema, model, Types } from "mongoose";
+import mongoose from "mongoose"; { Schema, model, Types } from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2";
 import mongooseDelete from "mongoose-delete";
 
@@ -8,14 +8,14 @@ interface IProduct {
     name: string;
     price: number;
     description?: string;
-    categoryId: Types.ObjectId;
+    categoryId: mongoose.Types.ObjectId;
     createdAt?: Date;
     updatedAt?: Date;
     deletedAt?: Date | null;
     deleted?: boolean;
 }
 
-const productSchema = new Schema<IProduct>({
+const productSchema = new mongoose.Schema<IProduct>({
     name: {
         type: String,
         required: true,
@@ -28,11 +28,11 @@ const productSchema = new Schema<IProduct>({
     description: {
         type: String,
     },
-    // categoryId: {
-    //     type: Types.ObjectId,
-    //     ref: "categories",
-    //     required: true,
-    // },
+    categoryId: {
+        type: mongoose.Types.ObjectId,
+        ref: "categories",
+        required: true,
+    },
     createdAt: {
         type: Date,
         default: Date.now,
@@ -49,11 +49,10 @@ const productSchema = new Schema<IProduct>({
         type: Boolean,
         default: false,
     },
-});
+}, { timestamps: true, versionKey: false });
 
 plugins.forEach((plugin) => {
     productSchema.plugin(plugin);
 });
 
-const Product = model<IProduct>("Product", productSchema);
-export default Product;
+export default mongoose.model<IProduct>("Product", productSchema);

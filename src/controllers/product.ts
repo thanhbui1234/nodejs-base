@@ -52,13 +52,6 @@ export const get = async (req: Request, res: Response) => {
                 totalItems: result.totalDocs,
             },
         };
-
-        // if (_expand) {
-        //     const products = result.docs;
-        //     const categories = Array.from(new Set(products.map((p) => p.categoryId)));
-        //     response.categories = categories;
-        // }
-
         return res.status(200).json(response);
     } catch (error) {
         return res.status(400).json({ message: error.message });
@@ -67,7 +60,6 @@ export const get = async (req: Request, res: Response) => {
 export const add = async (req: Request, res: Response) => {
     try {
         const body = req.body;
-        // Kiểm tra dữ liệu
         const { error } = productSchema.validate(body, { abortEarly: false });
         if (error) {
             const errors = error.details.map((message) => ({ message }));
@@ -115,8 +107,6 @@ export const remove = async (req: Request, res: Response) => {
     try {
         const id = req.params.id;
         const { isHardDelete } = req.body;
-
-        // Kiểm tra dữ liệu
         const { error } = productSchema.validate(req.body, { abortEarly: false });
         if (error) {
             const errors = error.details.map((message) => ({ message }));
@@ -130,8 +120,6 @@ export const remove = async (req: Request, res: Response) => {
                 message: "Không tìm thấy sản phẩm",
             });
         }
-        // Kiểm tra nếu isHardDelete = true thì xóa vĩnh viễn
-        // ngược lại thì xóa mềm
         isHardDelete === "true" ? await product.forceDelete() : await product.delete();
 
         return res.status(200).json({
@@ -149,7 +137,6 @@ export const restore = async (req: Request, res: Response) => {
         const id = req.params.id;
         const product = await Product.findById(id);
 
-        // Kiểm tra quyền hạn của người dùng
         if (!req.user.isAdmin) {
             return res.status(403).json({
                 message: "Bạn không có quyền phục hồi sản phẩm",

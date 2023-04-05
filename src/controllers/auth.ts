@@ -6,7 +6,7 @@ import { signInSchema, signupSchema } from "../schemas/auth";
 
 // define validation schema using yup
 
-export const signup = async (req: Request, res: Response) => {
+export const signup = async (req: Request, res: Response): Promise<Response> => {
     try {
         const { name, email, password, confirmPassword } = req.body;
 
@@ -35,23 +35,20 @@ export const signup = async (req: Request, res: Response) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const user = new User({
+        const user = User.create({
             name,
             email,
             password: hashedPassword,
         });
-
-        const savedUser = await user.save();
-
-        const token = jwt.sign({ _id: savedUser._id }, "123456");
+        const token = jwt.sign({ _id: user._id }, "123456");
 
         return res.status(201).json({
             message: "Đăng ký thành công",
             token,
             user: {
-                _id: savedUser._id,
-                name: savedUser.name,
-                email: savedUser.email,
+                _id: user._id,
+                name: user.name,
+                email: user.email,
             },
         });
     } catch (error) {

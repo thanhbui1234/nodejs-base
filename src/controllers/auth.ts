@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
-import User from "../models/user";
+import User, { IUser } from "../models/user";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { signInSchema, signupSchema } from "../schemas/auth";
-
+import { Document } from 'mongoose';
 // define validation schema using yup
 
 export const signup = async (req: Request, res: Response): Promise<Response> => {
@@ -35,7 +35,7 @@ export const signup = async (req: Request, res: Response): Promise<Response> => 
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const user = User.create({
+        const user: IUser = await User.create({
             name,
             email,
             password: hashedPassword,
@@ -68,7 +68,7 @@ export const signin = async (req: Request, res: Response) => {
                 message: errors,
             });
         }
-        const user = await User.findOne({ email });
+        const user: IUser = await User.findOne({ email });
         if (!user) {
             return res.status(400).json({ message: "Tài khoản không tồn tại" });
         }

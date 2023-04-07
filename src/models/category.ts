@@ -1,4 +1,4 @@
-import mongoose from "mongoose"
+import mongoose, { UpdateQuery } from "mongoose"
 import mongoosePaginate from "mongoose-paginate-v2";
 import mongooseDelete from "mongoose-delete";
 
@@ -25,14 +25,22 @@ plugins.forEach((plugin) => {
     categorySchema.plugin(plugin);
 });
 
-// Trước khi xóa category, xóa tất cả các product có categoryId trùng với category đang xóa
-categorySchema.pre("remove", async function (next) {
-    try {
-        await new this.model("Product").deleteMany({ categoryId: this._id });
-        next();
-    } catch (err) {
-        next(err);
+// Trước khi xóa category, cập nhật lại category của các sản phẩm thuộc category này thành uncategory
+categorySchema.pre("findOneAndUpdate", async function (next) {
+    const filter = this.getFilter(); // Lấy điều kiện tìm kiếm hiện tại của truy vấn
+    const update: UpdateQuery<ICategory> = {
+        $set: { name: "uncategorized" },
+    };
+    // Nếu thông tin cập nhật bao gồm trường categoryId
+    if (update.categoryId) {
+        const { n } = await new this.model("Product").updateMany(
+            { categoryId: filter._id }, // Tìm các sản phẩm cùng categoryId
+            { categoryId: update.categoryId } // Cập nhật categoryId mới
+        );
+        console.log(`Updated ${n} products`);
     }
+
+    next();
 });
 
 export default mongoose.model<ICategory>("Category", categorySchema);

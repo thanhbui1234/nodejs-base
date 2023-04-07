@@ -1,9 +1,9 @@
-import { NextFunction } from 'express';
+import { NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { IUser } from "../interfaces/user";
 import User from '../models/user';
 
-export const checkPermission = async (req, res, next: NextFunction) => {
+export const authenticate = async (req, res, next: NextFunction) => {
     try {
         const authHeader = req.headers.authorization;
         if (!authHeader) throw new Error("Bạn phải đăng nhập để thực hiện hành động này");
@@ -13,8 +13,8 @@ export const checkPermission = async (req, res, next: NextFunction) => {
 
         const { id } = jwt.verify(token, secretKey) as JwtPayload
         const user = await User.findById(id) as IUser;
-        if (user && !(user.role === "admin")) {
-            throw new Error("Bạn không có quyền để thực hiện hành động này");
+        if (!user) {
+            throw new Error("Không tìm thấy người dùng");
         }
         req.user = user
         next();

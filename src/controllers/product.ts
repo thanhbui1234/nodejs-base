@@ -4,7 +4,7 @@ import { IProduct, IProductResponse } from "../interfaces/product";
 import Category from '../models/category';
 import Product from "../models/product";
 import { productSchema } from "../schemas/product";
-import { IRequestWithUser } from "../interfaces/user";
+import { IRequestWithUser, IUser } from "../interfaces/user";
 
 export const getAll = async (req: Request, res: Response) => {
     const { _page = 1, _limit = 10, _sort = "createdAt", _order = "asc", _expand } = req.query;
@@ -64,13 +64,13 @@ export const create = async (req: Request, res: Response) => {
         });
     } catch (error) {
         return res.status(400).json({
-            message: error,
+            message: "Thêm sản phẩm không thành công",
+            error: error.message
         });
     }
 };
 export const update = async (req: Request, res: Response) => {
     try {
-        // Kiểm tra dữ liệu
         const { error } = productSchema.validate(req.body, { abortEarly: false });
         if (error) {
             return res.status(400).json({
@@ -103,7 +103,7 @@ export const update = async (req: Request, res: Response) => {
         return res.status(200).json(updatedProduct);
     } catch (error) {
         return res.status(500).json({
-            message: "Đã có lỗi xảy ra khi cập nhật sản phẩm",
+            message: "Cập nhật sản phẩm không thành công",
             error: error.message,
         });
     }
@@ -143,16 +143,18 @@ export const remove = async (req: Request, res: Response) => {
         });
     } catch (error) {
         res.status(400).json({
-            message: error,
+            message: "Xóa sản phẩm thất bại",
+            error: error.message,
         });
     }
 };
 export const restore = async (req, res: Response) => {
     try {
-        const id = req.params.id;
-        const product = await Product.findById(id);
+        const id = req.params.id as string;
+        const user = req.user as IUser;
+        const product = await Product.findById(id) as IProduct;
 
-        if (!req.user.role || req.user.role !== "admin") {
+        if (!user.role || user.role !== "admin") {
             return res.status(403).json({
                 message: "Bạn không có quyền phục hồi sản phẩm",
             });
@@ -162,7 +164,6 @@ export const restore = async (req, res: Response) => {
                 message: "Không tìm thấy sản phẩm",
             });
         }
-
         if (!product.deleted) {
             return res.status(400).json({
                 message: "Sản phẩm chưa bị xóa mềm",
@@ -181,6 +182,7 @@ export const restore = async (req, res: Response) => {
     } catch (error) {
         res.status(400).json({
             message: "Phục hồi sản phẩm không thành công",
+            error: error.message
         });
     }
 };

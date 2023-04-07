@@ -3,21 +3,10 @@ import { Request, Response } from "express";
 import Product from "../models/product";
 import { productSchema } from "../schemas/product";
 import Category from '../models/category';
-interface IProduct {
-    id: string;
-    name: string;
-    description: string;
-    price: number;
-}
+import { IProduct, IProductResponse } from "../interfaces/product";
 
-interface IProductResponse {
-    data: IProduct[];
-    pagination: {
-        currentPage: number;
-        totalPages: number;
-        totalItems: number;
-    };
-}
+
+
 export const get = async (req: Request, res: Response) => {
     const { _page = 1, _limit = 10, _sort = "createdAt", _order = "asc", _expand } = req.query;
 
@@ -58,13 +47,13 @@ export const get = async (req: Request, res: Response) => {
 };
 export const add = async (req: Request, res: Response) => {
     try {
-        const body = req.body;
-        const { error } = productSchema.validate(body, { abortEarly: false });
+        const { error } = productSchema.validate(req.body, { abortEarly: false });
         if (error) {
             const errors = error.details.map((message) => ({ message }));
             return res.status(400).json({ errors });
         }
-        const product = await Product.create(body);
+        // Thêm sản phẩm vào database
+        const product = await Product.create(req.body);
 
         await Category.findOneAndUpdate(product.categoryId, {
             $addToSet: {
@@ -82,29 +71,41 @@ export const add = async (req: Request, res: Response) => {
 };
 export const update = async (req: Request, res: Response) => {
     try {
-        const id = req.params.id;
-        const body = req.body;
-
         // Kiểm tra dữ liệu
-        const { error } = productSchema.validate(body, { abortEarly: false });
+        const { error } = productSchema.validate(req.body, { abortEarly: false });
         if (error) {
-            const errors = error.details.map((message) => ({ message }));
-            return res.status(400).json({ errors });
-        }
-        const product = await Product.findOneAndUpdate({ _id: id }, body, { new: true });
-        if (!product) {
-            return res.status(404).json({
-                message: "Không tìm thấy sản phẩm",
+            return res.status(400).json({
+                messages: error.details.map((message) => ({ message }))
             });
         }
+        // Tìm sản phẩm theo id và cập nhật dữ liệu mới
+        const productId = req.params.id;
+        const updatedProduct = await Product.findOneAndUpdate({ _id: productId }, req.body, { new: true });
+        if (!updatedProduct) {
+            return res.sendStatus(404);
+        }
 
-        return res.status(200).json({
-            message: "Cập nhật sản phẩm thành công",
-            data: product,
-        });
+        // Xóa sản phẩm cũ khỏi danh sách products của category cũ
+        const oldCategoryId = updatedProduct.categoryId;
+        await Category.findByIdAndUpdate(
+            oldCategoryId,
+            { $pull: { products: productId } }
+        );
+
+        // Thêm sản phẩm mới vào danh sách products của category mới
+        const newCategoryId = req.body.categoryId;
+        if (newCategoryId) {
+            // Thêm sản phẩm mới vào danh sách products của category mới
+            await Category.findByIdAndUpdate(
+                newCategoryId,
+                { $addToSet: { products: productId } }
+            );
+        }
+        return res.status(200).json(updatedProduct);
     } catch (error) {
-        res.status(400).json({
-            messsage: error,
+        return res.status(500).json({
+            message: "Đã có lỗi xảy ra khi cập nhật sản phẩm",
+            error: error.message,
         });
     }
 };

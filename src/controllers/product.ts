@@ -126,7 +126,18 @@ export const remove = async (req: Request, res: Response) => {
                 message: "Không tìm thấy sản phẩm",
             });
         }
-        isHardDelete === "true" ? await product.forceDelete() : await product.delete();
+        // Nếu client gửi lên isHardDelete = true thì xóa sản phẩm vĩnh viễn
+        // Ngoài ra xóa luôn id sản phẩm khỏi danh sách products ở category
+        if (isHardDelete) {
+            await product.forceDelete();
+            // Xóa sản phẩm cũ khỏi danh sách products của category cũ
+            await Category.findByIdAndUpdate(
+                product.categoryId,
+                { $pull: { products: product._id } }
+            );
+        } else {
+            await product.delete()
+        }
 
         return res.status(200).json({
             message: "Xóa sản phẩm thành công",

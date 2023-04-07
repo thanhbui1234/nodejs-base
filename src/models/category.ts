@@ -25,4 +25,13 @@ plugins.forEach((plugin) => {
     categorySchema.plugin(plugin);
 });
 
+categorySchema.pre("remove", async function (next) {
+    try {
+        await new this.model("Product").deleteMany({ categoryId: this._id });
+        next();
+    } catch (err) {
+        next(err);
+    }
+});
+
 export default mongoose.model<ICategory>("Category", categorySchema);

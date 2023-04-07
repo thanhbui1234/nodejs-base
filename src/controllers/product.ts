@@ -2,6 +2,7 @@
 import { Request, Response } from "express";
 import Product from "../models/product";
 import { productSchema } from "../schemas/product";
+import Category from '../models/category';
 interface IProduct {
     id: string;
     name: string;
@@ -41,9 +42,7 @@ export const get = async (req: Request, res: Response) => {
             totalPages: number;
             totalDocs: number;
         };
-
         if (result.docs.length === 0) throw new Error("No products found");
-
         const response: IProductResponse = {
             data: result.docs,
             pagination: {
@@ -66,6 +65,12 @@ export const add = async (req: Request, res: Response) => {
             return res.status(400).json({ errors });
         }
         const product = await Product.create(body);
+
+        await Category.findOneAndUpdate(product.categoryId, {
+            $addToSet: {
+                products: product._id
+            }
+        })
         return res.status(200).json({
             product,
         });

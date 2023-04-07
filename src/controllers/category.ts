@@ -1,14 +1,15 @@
-import Category from "../models/product";
+import Category from "../models/category";
+import { Request, Response } from 'express';
 
-export const get = async (req, res) => {
+export const get = async (req: Request, res: Response) => {
     const categoryId = req.params.id;
+    const { _page = 1, _limit = 10, _sort = "createdAt", _order = "asc", _embed } = req.query;
     const options = {
-        page: req.query._page || 1,
-        limit: req.query._limit || 10,
-        sort: { [req.query._sort || "createdAt"]: req.query._order === "desc" ? -1 : 1 },
+        page: _page,
+        limit: _limit,
+        sort: { [_sort as string]: _order === "desc" ? -1 : 1 },
     };
-    const populateOptions = req.query._embed ? [{ path: "categoryId", select: "name" }] : [];
-
+    const populateOptions = _embed ? [{ path: "categoryId", select: "name" }] : [];
     try {
         const category = await Category.findOne({ _id: categoryId });
         if (!category) {
@@ -16,7 +17,7 @@ export const get = async (req, res) => {
                 message: "Category not found",
             });
         }
-        const result = await Product.paginate(
+        const result: any = await Category.paginate(
             { categoryId },
             { ...options, populate: populateOptions }
         );
@@ -26,8 +27,8 @@ export const get = async (req, res) => {
                 message: "No products found in this category",
             });
         }
-        if (req.query._embed) {
-            return res.status(200).json({
+        if (_embed) {
+            return res.json({
                 data: {
                     category,
                     products: result.docs,

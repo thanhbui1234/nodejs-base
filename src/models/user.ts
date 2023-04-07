@@ -1,16 +1,9 @@
-import mongoose, { Document, Model, model, Schema } from "mongoose";
-
-export interface IUser extends Document {
-    _id: string;
-    name: string;
-    email: string;
-    password: string;
-}
-
+import mongoose, { Schema } from "mongoose";
+import { IUser } from "../interfaces/user";
 const userSchema: Schema<IUser> = new mongoose.Schema(
     {
         name: {
-            type: String,
+            type: Schema.Types.String,
             minLength: 6,
             maxLength: 255,
         },
@@ -22,6 +15,11 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
         password: {
             type: String,
         },
+        role: {
+            type: String,
+            enum: ["admin", "member"],
+            default: "member",
+        }
     },
     { timestamps: true, versionKey: false }
 );

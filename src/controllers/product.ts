@@ -1,31 +1,21 @@
 
 import { Request, Response } from "express";
+import { IProduct, IProductResponse } from "../interfaces/product";
+import Category from '../models/category';
 import Product from "../models/product";
 import { productSchema } from "../schemas/product";
-import Category from '../models/category';
-import { IProduct, IProductResponse } from "../interfaces/product";
+import { IRequestWithUser } from "../interfaces/user";
 
-
-
-export const get = async (req: Request, res: Response) => {
+export const getAll = async (req: Request, res: Response) => {
     const { _page = 1, _limit = 10, _sort = "createdAt", _order = "asc", _expand } = req.query;
-
     const options = {
         page: _page,
         limit: _limit,
         sort: { [_sort as string]: _order === "desc" ? -1 : 1 },
     };
-
     const populateOptions = _expand ? [{ path: "categoryId", select: "name" }] : [];
-
     try {
-        if (req.params.id) {
-            const product = await Product.findById(req.params.id);
-            if (!product) throw new Error("Product not found");
-            return res.status(200).json({ data: product });
-        }
-
-        const result = await Product.paginate({}, { ...options, populate: populateOptions }) as {
+        const result = await Product.paginate({ categoryId: null }, { ...options, populate: populateOptions }) as {
             docs: IProduct[];
             page: number;
             totalPages: number;
@@ -45,7 +35,16 @@ export const get = async (req: Request, res: Response) => {
         return res.status(400).json({ message: error.message });
     }
 };
-export const add = async (req: Request, res: Response) => {
+export const get = async (req: Request, res: Response) => {
+    try {
+        const product = await Product.findById(req.params.id);
+        if (!product) throw new Error("Product not found");
+        return res.status(200).json({ data: product });
+    } catch (error) {
+        return res.status(400).json({ message: error.message });
+    }
+}
+export const create = async (req: Request, res: Response) => {
     try {
         const { error } = productSchema.validate(req.body, { abortEarly: false });
         if (error) {
@@ -118,7 +117,6 @@ export const remove = async (req: Request, res: Response) => {
             const errors = error.details.map((message) => ({ message }));
             return res.status(400).json({ errors });
         }
-
         const product = await Product.findById(id);
 
         if (!product) {
@@ -149,12 +147,12 @@ export const remove = async (req: Request, res: Response) => {
         });
     }
 };
-export const restore = async (req: Request, res: Response) => {
+export const restore = async (req, res: Response) => {
     try {
         const id = req.params.id;
         const product = await Product.findById(id);
 
-        if (!req.user.isAdmin) {
+        if (!req.user.role || req.user.role !== "admin") {
             return res.status(403).json({
                 message: "Bạn không có quyền phục hồi sản phẩm",
             });

@@ -1,19 +1,9 @@
 import mongoose, { Document } from "mongoose";
 import mongoosePaginate from 'mongoose-paginate-v2';
 import mongooseDelete from "mongoose-delete";
+import { IProduct } from "../interfaces/product";
 
 const plugins = [mongoosePaginate, mongooseDelete];
-
-interface IProduct extends Document {
-    name: string;
-    price: number;
-    description?: string;
-    categoryId: mongoose.Types.ObjectId;
-    createdAt?: Date;
-    updatedAt?: Date;
-    deletedAt?: Date | null;
-    deleted?: boolean;
-}
 
 const productSchema = new mongoose.Schema<IProduct>({
     name: {
@@ -48,8 +38,7 @@ const productSchema = new mongoose.Schema<IProduct>({
     deleted: {
         type: Boolean,
         default: false,
-    },
-
+    }
 }, { timestamps: true, versionKey: false });
 
 plugins.forEach((plugin) => {

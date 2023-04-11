@@ -1,10 +1,10 @@
 
 import { Request, Response } from "express";
 import { IProduct, IProductResponse } from "../interfaces/product";
+import { IUser } from "../interfaces/user";
 import Category from '../models/category';
 import Product from "../models/product";
 import { productSchema } from "../schemas/product";
-import { IRequestWithUser, IUser } from "../interfaces/user";
 
 export const getAll = async (req: Request, res: Response) => {
     const { _page = 1, _limit = 10, _sort = "createdAt", _order = "asc", _expand } = req.query;

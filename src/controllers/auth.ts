@@ -1,9 +1,9 @@
-import { Request, Response } from 'express';
-import User, { IUser } from "../models/user";
-import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import { Request, Response } from 'express';
+import jwt from "jsonwebtoken";
+import User from "../models/user";
+import { IUser } from "../interfaces/user";
 import { signInSchema, signupSchema } from "../schemas/auth";
-import { Document } from 'mongoose';
 // define validation schema using yup
 
 export const signup = async (req: Request, res: Response): Promise<Response> => {
@@ -88,9 +88,6 @@ export const signin = async (req: Request, res: Response) => {
             accessToken: token,
         });
     } catch (error) {
-        if (error.name === "ValidationError") {
-            return res.status(400).json({ message: error.errors[0] });
-        }
-        res.status(500).json({ message: "Internal Server Error" });
+        return res.status(400).json({ message: error.message });
     }
 };
